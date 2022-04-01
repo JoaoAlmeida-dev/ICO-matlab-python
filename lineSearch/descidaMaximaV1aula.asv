@@ -1,0 +1,203 @@
+% MÉTODO DE DECIDA MÁXIMA (SDM- STEEPEST DESCENT METHOD)
+
+% ESTE m.FILE IMPLEMENTA O SDM PARA FUNÇÕES OBJETIVO f DEFINIDAS COMO FUNC-
+% TION-HANDLE f=@(x) ATRAVÉS DE UMA EXPRESSÃO NAS SUAS VARIÁVEIS x(i); ES-
+% TAS VARIÁVEIS x(i)COMPOÊM A VARIÁVEL x DA FUNÇÃO f), SENDO x TRATADA A
+% NÍVEL DO MATLAB COMO UM VETOR COLUNA [x(1);x(2);...].
+
+% ESTE m.FILE IMPLEMENTA O SDM COM:
+% - GERAÇÃO PSEUDO-ALEATÓRIA DE PTOS INICIAIS x_0
+% - PASSO CONSTANTE lamba=0.01
+
+% ESTE m.FILE PERMITE A EXISTÊNCIA DE PARÂMETROS A AJUSTAR, O QUE O TORNA +  
+% FUNCIONAL; ESSES PARÂMETROS PODEM SER RELATIVOS ÀS CONDIÇÕES DE PARAGEM,
+% AO Nº (NPontosIniciais) DE PTOS INICIAIS x_0, ETC..
+
+% ESTE M.file RECORRE A 3 m.FILES: 
+% - f de 2 VARIÁVEIS:  "nivelGraficos.m", "graficosLineSearch.m" E "mean.m" 
+% - f de 1 VAR.: "nivelGraficos.m", "graficosLineSearchNvar1.m" E "mean.m".
+
+
+% O COMANDO clc PODE SER ÚTIL POR LIMPAR VARIÁVEIS DO AMBIENTE DE TRABALHO
+
+clc
+%rng(2)
+rng(18)
+
+% PARTE 1: DEFINIÇÃO DA FUNÇÃO OBJETIVO E DO Nº DE VARIÁVEIS
+
+f=@(x) 100*(x(2)-x(1)^2)^2+(1-x(1))^2;
+%f=@(x) (x(1) + 2)*x(1)*(x(1)-2)*(x(1)-6)+(x(2) + 2)*x(2)*(x(2)-2)*(x(2)-6);
+
+Nvar=2;                         % O Nº DE VARIÁVEIS: É RELEVANTE NA GERAÇÃO
+%                                 DO PTO INICIAL x_0 E NO TRATAMENTO GRÁF.
+
+
+% PARTE 2: CÁLCULO SIMBÓLICO DO VETOR GRADIENTE  [IMPLEMENTADO PARA Nvar=1
+%                                                OU Nvar=2; SE Nvar>2 É NE-
+%                                                CESSÁRIO EDITAR O CÓDIGO]
+
+syms a b 'real'       % a E b SÃO DEFINIDAS COMO VARIÁVEIS SIMBÓLICAS REAIS
+
+if Nvar==1
+v=a;                  % DEFINE O VETOR v DA VARIÁVEL SIMBÓLICA a NO CASO DE 
+%                       EXISTIR APENAS UMA VARIÁVEL x NA fUNÇÃO OBJETIVO f
+    elseif Nvar==2
+v=[a; b];             % DEFINE O VETOR COLUNA v DAS VARIÁVEIS SIMBÓLICAS a 
+%                       E b NO CASO DE EXISTIREM 2 VARIÁVEIS x(1) E x(2) NA
+%                       FUNÇÃO OBJETIVO f
+end
+        
+S=f(v);             % DEFINE A FUNÇÃO OBJETIVO f COMO EXPRESSÃO SIMBÓLICA S
+
+dS=jacobian(S,v);  % COMANDO jacobian PARA CÁLC. SIMBÓL. DO VETOR GRADIENTE
+                    
+df=@(x) double(subs(dS,v,x)');    % DEFINE O VETOR GRADIENTE COMO FUNCTION-
+%                                   -HANDLE df=@(x) DADO POR dS; O COMANDO 
+%                                   subs PERMITE QUE ESTA FUNÇÃO GRADIENTE 
+%                                   POSSA SER USADA PARA CÁLCULO NUMÉRICO 
+%                                   QUANDO SE SUBSTITUI O VETOR SIMBÓLICO v
+%                                   POR VALORES CONCRETOS DE x; RESULTA NUM
+%                                   VETOR COLUNA POR USO DA NOTAÇÃO '
+                           
+
+% PARTE 3: DEFINIÇÃO DOS PARÂMETROS PARA OS CRITÉRIOS/CONDIÇÕES DE PARAGEM
+
+Nmax=50;       % É INDICADO O Nº MÁXIMO DE ITERAÇÕES (Nmax): 50
+errodf=0.15;   % É INDICADO O ERRO (errodf) PERMITIDO NO GRADIENte: 10^(-1)
+
+
+
+% PARTE 4: DESIGNAÇÃO DOS OUTPUTS ARQUIVOS, ESSENCIAIS AO TRATAMENTO GRÁFIC
+
+Lista=[];  % Lista: ARQUIVA AS ITERADAS x_k OBTIDAS EM CADA PTO INICIAL x_0 
+LNit=[];   % LNit: ARQUIVA O Nº DE ITERAÇÕES USADAS EM CADA PTO INICIAL x_0
+Lopt=[];   % Lopt: ARQUIVA OS CANDIDATOS A PTOS ÓPTIMOS (OS ÓPTIMOS LOCAIS)
+
+
+
+% PARTE 5: Nº DE PTOS INICIAIS E INTERVALO PARA SELEÇÃO DOS PTOS INICIAIS
+
+NPontosIniciais=13; %É INDICADO O Nº (NPontosIniciais) DE PTOS INICIAIS: 10 
+
+a=[-4,-4]'; b=[4,4]'; % É INDICADO O INTERVALO DE VISUALIZAÇÃO GRÁ- 
+%                               FICA, ONDE SÃO TOMADOS OS PTOS INICIAIS x_0
+%                               (A ESCRITA DE a E b DEVE ENTENDER-SE COMO
+%                               a=[xmin,ymin]' E  b=[xmax,ymax]', LOGO x(1) 
+%                               E x(2) SÃO TOMADAS NO INTERVALO [-2.5,6.5]) 
+ 
+
+                                   
+% PARTE 6: IMPLEMENTAÇÃO DO MÉTODO SDM (PROCESSO ITERATIVO)
+
+for i=1:NPontosIniciais             % INDEXAÇÃO POR i DOS PTOS INICIAIS x_0
+    x=(b-a).*rand(Nvar,1)+a;   % PROCESSO DE ESCOLHA DOS PTOS INICIAIS x_0,
+%                                NESTE CASO É POR GERAÇÃO PSEUDO-ALEATÓRIA
+    lambda=.001;           % ESCOLHA DO PASSO / STEPSIZE CONST. LAMBDA: 0.01
+    Lista=[Lista, x];       % O PTO INICIAL x_0 É GUARDADO NO ARQUIVO Lista 
+    dfx=df(x);            % dfx = GRADIENTE df CALCULADO NO PTO INICIAL x_0     
+    N=1;       % Nº DE ITERAÇÕES EFETUADAS; O PTO INICIAL x_0 CONTA COMO 1ª     
+    
+    while norm(dfx)>errodf && N<Nmax     % ESCRITA DAS CONDIÇÕES DE PARAGEM
+        d=-dfx;           % CARATERIZAÇÃO DA DIREÇÃO DE BUSCA d=-dfx do SDM                    
+        x=x+lambda*d;   % CÁLC. DA NOVA ITERADA A PARTIR DO PTO INICIAL x_0
+        Lista=[Lista, x];                % ARQUIVO DA NOVA ITERADA EM Lista
+        dfx=df(x)    % ATUALIZAÇ. DO GRADIENTE: CÁLC. DE df NA NOVA ITERADA
+        N=N+1;                             % ATUALIZAÇÃO DO Nº DE ITERAÇÕES           
+    end 
+    
+    Lopt=[Lopt x];             % A ÚLTIMA ITERADA PARA CADA PTO INICIAL x_0 
+ %                               [FACE AO(S) CRITÉRIO(S) DE PARAGEM]  É AR-
+ %                               QUIVADA EM Lopt COMO PTO CANDIDATO A ÓPTI- 
+ %                               MO GLOBAL (ATÉ AQUI É UM PTO ÓPTIMO LOCAL)
+    LNit=[LNit N];       % O Nº (N) DE ITERAÇÕES É GUARDADO NO ARQUIVO LNit
+end
+
+
+
+% PARTE 7: OBTENÇÃO DO MÍNIMO GLOBAL
+
+xopt=Lopt(:,1);        % DESIGNA-SE O 1º CANDIDATO A ÓPTIMO GLOBAL POR xopt
+%                        E É TOMADO COMO O 1º ELEMENTO DO ARQUIVO Lopt 
+
+for i=2:NPontosIniciais  % INDEXAÇÃO POR i DOS DIFERENTES CANDIDATOS, SENDO 
+%                          O Nº DE CANDIDATOS IGUAL AO Nº (NPontosIniciais)
+%                          DE PTOS INICIAIS x_0
+    if f(xopt)>f(Lopt(:,i))       % AVALIAÇÃO DO CANDIDATO FACE AO RESTAN-
+%                                    TES CANDIDATOS: TEM A MENOR IMAGEM por
+%                                    f FACE AOS RESTANTES DO ARQUIVO Lopt
+        xopt=Lopt(:,i);  % TROCA DE CANDIDATO A ÓPTIMO GLOBAL SEMPRE QUE A 
+%                          AVALIAÇÃO ANTERIOR NÃO FOR FAVORÁVEL À MINIMIZA- 
+%                          ÇÃO,ISTO É, SE A RESPOSTA À QUESTÃO ANTER. É NÃO                      
+    end
+end
+
+
+
+% PARTE 8: DEFINIÇÃO DOS OUTPUTS
+
+xoptimo=xopt;    % DESIGNA-SE O PONTO ÓPTIMO POR xoptimo, ISTO É, xoptimo =
+%                  = MELHOR CANDIDATO xopt OBTIDO DO CICLO ANTERIOR   
+                 
+foptimo=f(xopt);               % DESIGNA-SE POR foptimo O VALOR ÓPTIMO (MÍ-
+%                                NÍMO GLOBAL) OBTIDO, ISTO É, foptimo=VALOR
+%                                ÓPTIMO: foptimo = f(PTO ÓPTIMO)=f(xopt)
+                 
+dffinal=df(xopt);                      % DESIGNA-SE O VETOR GRADIENTE CAL-
+%                                        CULADO NO PONTO ÓPTIMO POR dffinal  
+                                       
+NIterMean=mean(LNit);        % CÁLCULO DO Nº MÉDIO (NIterMEAN) DE ITERAÇÕES  
+%                              NECESSÁRIAS ATRAVÉS DO FICHEIRO "mean.m"
+     
+
+
+% PARTE 9: EXIBIÇÃO DE OUTPUTS NA COMMAND WINDOW
+
+disp(xoptimo);                    % EXIBIÇÃO DO (OUTPUT) PTO ÓPTIMO xoptimo
+disp('xoptimo:');                 % EXIBIR PTO ÓPTIMO LEGENDADO 'xoptimo'
+
+disp(foptimo);                  % EXIBIÇÃO DO (OUTPUT) VALOR ÓPTIMO foptimo
+disp('foptimo:');               % EXIBIR VALOR ÓPTIMO LEGENDADA 'foptimo'         
+
+disp(dffinal);       % EXIBIÇÃO DO (OUTPUT) GRADIENTE NO PTO ÓPTIMO dffinal
+disp('dffinal:');    % EXIBIR GRADIENTE NO PTO ÓPTIMO LEGENDADO 'dffinal'       
+
+disp('NIterMean:');  % EXIBIR Nº MÉDIO DE ITERAÇ. LEGENDADO 'NIterMean'
+disp(NIterMean);     % EXIBIÇÃO DO (OUTPUT) Nº MÉDIO DE ITERAÇÕES NIterMean
+
+disp('Lopt:');
+disp(Lopt);
+
+disp('LNit:');
+disp(LNit);
+
+
+
+% PARTE 10: EXIBIÇÃO DOS GRÁFICOS COM RECURSO A OUTROS m.FILES
+
+ close all                      % LIMPAR ANTES DE RECORRER A OUTROS m.FILES
+ 
+ if Nvar==2               % SE O Nº DE VARIÁVEIS DA FUNÇÃO OBJETIVO f FOR 2   
+ nivelGraficos(f,a(1),b(1),a(2),b(2))  % REPRESENTAÇÃO GRÁFICA DAS CURVAS 
+%                                        DE NÍVEL ATRAVÉS DO FICHEIRO
+%                                        "nivelGraficos.m"
+ hold on    % (COMANDO JÁ EXPLICADO NOUTROS m.FILE)
+ 
+ graficosLineSearch(Lista,LNit,Lopt)     % E TRATAMENTO GRÁFICO DOS OUTPUTS
+%                                          Lista E LNit ATRAVÉS DO FICHEIRO
+%                                          "graficosLineSearch.m" 
+ hold off   % (COMANDO JÁ EXPLICADO NOUTROS m.FILE)
+
+    elseif Nvar==1                        % SE O Nº DE VARIÁVEIS DE f FOR 1
+
+ graficosLineSearchNvar1(f,Lista,LNit,Lopt)   % TRATAMENTO GRÁFICO DOS OUT-
+%                                               PUTS f, Lista E LNit PELO 
+%                                               "graficosLineSearchNvar1.m" 
+
+ hold on
+
+ fplot(f,[a(1),b(1)])           % EXIBIÇÃO DO GRÁFICO (TRIDIMENSIONAL) DE f
+
+ hold off
+
+ end
