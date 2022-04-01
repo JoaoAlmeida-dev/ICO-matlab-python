@@ -1,5 +1,15 @@
-function[xoptimo,foptimo,dffinal,NIterMean,Lopt,LNit] = descidaMaximaWolf(seed , NPontosIniciais, display )
-
+function[xoptimo,foptimo,dffinal,NIterMean,Lopt,LNit] = descidaMaximaWolf(seed , NPontosIniciais, nMaxIter, error, xmin,xmax,ymin,ymax, display )
+    arguments
+        seed  int64
+        NPontosIniciais int64
+        nMaxIter int64
+        error double
+        xmin int64
+        xmax int64
+        ymin int64
+        ymax int64
+        display logical
+    end
 
 % M�TODO DE DECIDA M�XIMA (SDM- STEEPEST DESCENT METHOD)
 
@@ -32,30 +42,17 @@ rng(seed)
 
 % PARTE 1: DEFINI��O DA FUN��O OBJETIVO E DO N� DE VARI�VEIS
 f=@(x) 100*(x(2)-x(1)^2)^2+(1-x(1))^2;
-%f=@(x) x(1)^4-12*x(1)^2-4*x(1)+x(2)^4-16*x(2)^2-5*x(2)-20*cos(x(1)-2.5)*cos(x(2)-2.9);
-
-% PARTE 3: DEFINI��O DOS PAR�METROS PARA OS CRIT�RIOS/CONDI��ES DE PARAGEM
-
-Nmax=50;
-errodf=0.15;
-
 Nvar=2;
-
-% PARTE 2: C�LCULO SIMB�LICO DO VETOR GRADIENTE  [IMPLEMENTADO PARA Nvar=1
-%                                                OU Nvar=2; SE Nvar>2 � NE-
-%                                                CESS�RIO EDITAR O C�DIGO]
-
-syms a b 'real'   
-
+syms a b 'real'
 if Nvar==1
-v=a;          
-    elseif Nvar==2
-v=[a; b];        
+        v=a;
+elseif Nvar==2
+    v=[a; b];
 end
         
-S=f(v);           
-dS=jacobian(S,v); 
-df=@(x) double(subs(dS,v,x)');  
+S=f(v);
+dS=jacobian(S,v);
+df=@(x) double(subs(dS,v,x)');
 
 % PARTE 4: DESIGNA��O DOS OUTPUTS ARQUIVOS, ESSENCIAIS AO TRATAMENTO GR�FIC
 
@@ -69,17 +66,17 @@ Lopt=[];
 
 %NPontosIniciais=3;
 
-a=[-4,-4]'; b=[4,4]';
-
+%a=[-4,-4]'; b=[4,4]';
+a=[double(xmin), double(ymin)]'; b=[double(xmax), double(ymax)]';
 
 
 % PARTE 6: IMPLEMENTA��O DO M�TODO SDM (PROCESSO ITERATIVO)
 
 for i=1:NPontosIniciais
     x=(b-a).*rand(Nvar,1)+a; 
-    Lista=[Lista, x];       
-    dfx=df(x);            
-    d=-dfx;               
+    Lista=[Lista, x];
+    dfx=df(x);
+    d=-dfx;
     beta0=.1;              % beta DE INICIALIZA��O PARA A ESCOLHA DE PASSOS 
     lambda=Wolfe(x,f,df,d,beta0);    % O PASSO lambda CONFORME AS CONDI��ES
 %                                      DE WOLFE, SEGUNDO O FICHEIRO Wolfe.m                  
@@ -90,7 +87,7 @@ for i=1:NPontosIniciais
     Lista=[Lista, xNovo];     
     N=2;       
     
-    while norm(dfxNovo)>errodf && N<Nmax 
+    while norm(dfxNovo)>error && N<nMaxIter
     dNovo=-dfxNovo;       
     
     beta0=lambda*(dfx'*d)/(dfxNovo'*dNovo); % C�LCULO DE beta0 PARA INICIAR 
@@ -135,10 +132,10 @@ end
 %          PORQUE N�O � COLOCADO ";" NO FINAL, EMBORA SEM LEGENDA)(PARA OB-
 %          TER LEGENDA COLOCAR PARTE 9 DO FICHEIRO "descidaMaximaV1aula.m")
 
-xoptimo=xopt        
-foptimo=f(xopt)    
-dffinal=df(xopt)    
-NIterMean=mean(LNit)
+xoptimo=xopt;
+foptimo=f(xopt);
+dffinal=df(xopt);
+NIterMean=mean(LNit);
 
 
 

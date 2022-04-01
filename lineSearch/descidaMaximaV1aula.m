@@ -33,10 +33,8 @@ function[xoptimo,foptimo,dffinal,NIterMean,Lopt,LNit] = descidaMaximaV1aula(seed
 % O COMANDO clc PODE SER �TIL POR LIMPAR VARI�VEIS DO AMBIENTE DE TRABALHO
 
 clc
-%rng(2)
-%rng(18)
 rng(seed)
- dbstop in descidaMaximaV1aula at 188
+
 % PARTE 1: DEFINI��O DA FUN��O OBJETIVO E DO N� DE VARI�VEIS
 
 f=@(x) 100*(x(2)-x(1)^2)^2+(1-x(1))^2;
@@ -72,13 +70,6 @@ df=@(x) double(subs(dS,v,x)');    % DEFINE O VETOR GRADIENTE COMO FUNCTION-
 %                                   QUANDO SE SUBSTITUI O VETOR SIMB�LICO v
 %                                   POR VALORES CONCRETOS DE x; RESULTA NUM
 %                                   VETOR COLUNA POR USO DA NOTA��O '
-                           
-
-% PARTE 3: DEFINI��O DOS PAR�METROS PARA OS CRIT�RIOS/CONDI��ES DE PARAGEM
-
-%nMaxIter=50;     nMaxIter  % � INDICADO O N� M�XIMO DE ITERA��ES (Nmax): 50
-%error=0.15; error  % � INDICADO O ERRO (errodf) PERMITIDO NO GRADIENte: 10^(-1)
-
 
 
 % PARTE 4: DESIGNA��O DOS OUTPUTS ARQUIVOS, ESSENCIAIS AO TRATAMENTO GR�FIC
@@ -93,10 +84,11 @@ Lopt=[];   % Lopt: ARQUIVA OS CANDIDATOS A PTOS �PTIMOS (OS �PTIMOS LOCAIS)
 
 %NPontosIniciais=13; %� INDICADO O N� (NPontosIniciais) DE PTOS INICIAIS: 10
 
- % � INDICADO O INTERVALO DE VISUALIZA��O GR�FICA, ONDE S�O TOMADOS OS PTOS INICIAIS x_0(A ESCRITA DE a E b DEVE ENTENDER-SE COMOa=[xmin,ymin]' E  b=[xmax,ymax]', LOGO x(1) E x(2) S�O TOMADAS NO INTERVALO [-2.5,6.5])
-a=[4,4]';b=[-4,-4]';
+ % � INDICADO O INTERVALO DE VISUALIZA��O GR�FICA, ONDE S�O TOMADOS OS PTOS INICIAIS x_0(A ESCRITA DE a E b DEVE ENTENDER-SE
+ % COMOa=[xmin,ymin]' E  b=[xmax,ymax]', LOGO x(1) E x(2) S�O TOMADAS NO INTERVALO [-2.5,6.5])
+a=[double(xmin), double(ymin)]'; b=[double(xmax), double(ymax)]';
 
-                                   
+%xmin,xmax,ymin,ymax
 % PARTE 6: IMPLEMENTA��O DO M�TODO SDM (PROCESSO ITERATIVO)
 
 for i=1:NPontosIniciais             % INDEXA��O POR i DOS PTOS INICIAIS x_0
@@ -156,24 +148,24 @@ NIterMean=mean(LNit);        % C�LCULO DO N� M�DIO (NIterMEAN) DE ITERA�
      
 
 
-% PARTE 9: EXIBI��O DE OUTPUTS NA COMMAND WINDOW
-disp('xoptimo:');                 % EXIBIR PTO �PTIMO LEGENDADO 'xoptimo'
-disp(xoptimo);                    % EXIBI��O DO (OUTPUT) PTO �PTIMO xoptimo
-
-disp('foptimo:');               % EXIBIR VALOR �PTIMO LEGENDADA 'foptimo'
-disp(foptimo);                  % EXIBI��O DO (OUTPUT) VALOR �PTIMO foptimo
-
-disp('dffinal:');    % EXIBIR GRADIENTE NO PTO �PTIMO LEGENDADO 'dffinal'
-disp(dffinal);       % EXIBI��O DO (OUTPUT) GRADIENTE NO PTO �PTIMO dffinal
-
-disp('NIterMean:');  % EXIBIR N� M�DIO DE ITERA�. LEGENDADO 'NIterMean'
-disp(NIterMean);     % EXIBI��O DO (OUTPUT) N� M�DIO DE ITERA��ES NIterMean
-
-disp('Lopt:');
-disp(Lopt);
-
-disp('LNit:');
-disp(LNit);
+%% PARTE 9: EXIBI��O DE OUTPUTS NA COMMAND WINDOW
+%disp('xoptimo:');                 % EXIBIR PTO �PTIMO LEGENDADO 'xoptimo'
+%disp(xoptimo);                    % EXIBI��O DO (OUTPUT) PTO �PTIMO xoptimo
+%
+%disp('foptimo:');               % EXIBIR VALOR �PTIMO LEGENDADA 'foptimo'
+%disp(foptimo);                  % EXIBI��O DO (OUTPUT) VALOR �PTIMO foptimo
+%
+%disp('dffinal:');    % EXIBIR GRADIENTE NO PTO �PTIMO LEGENDADO 'dffinal'
+%disp(dffinal);       % EXIBI��O DO (OUTPUT) GRADIENTE NO PTO �PTIMO dffinal
+%
+%disp('NIterMean:');  % EXIBIR N� M�DIO DE ITERA�. LEGENDADO 'NIterMean'
+%disp(NIterMean);     % EXIBI��O DO (OUTPUT) N� M�DIO DE ITERA��ES NIterMean
+%
+%disp('Lopt:');
+%disp(Lopt);
+%
+%disp('LNit:');
+%disp(LNit);
 
 
 

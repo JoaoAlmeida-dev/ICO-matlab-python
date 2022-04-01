@@ -1,4 +1,15 @@
-function[xoptimo,foptimo,dffinal,NIterMean,Lopt,LNit] = Newton2015(seed , NPontosIniciais, display )
+function[xoptimo,foptimo,dffinal,NIterMean,Lopt,LNit] = Newton2015(seed , NPontosIniciais, nMaxIter, error, xmin,xmax,ymin,ymax, display )
+    arguments
+        seed  int64
+        NPontosIniciais int64
+        nMaxIter int64
+        error double
+        xmin int64
+        xmax int64
+        ymin int64
+        ymax int64
+        display logical
+    end
 
 % M�TODO DE NEWTON-RAPHSON (N-RM)
 
@@ -20,8 +31,8 @@ function[xoptimo,foptimo,dffinal,NIterMean,Lopt,LNit] = Newton2015(seed , NPonto
 % ROS ANTERIORMENTE FORNECIDOS.
 
 clc
-clear
 rng(seed)
+%dbstop in Newton2015 at 64
 % PARTE 1: DEFINI��O DA FUN��O OBJETIVO, DAS MATRIZES JACOBIANA (A SUBSTI-
 %          TUIR O C�LCULO SIMB�LICO DO VETOR GRADIENTE PRESENTE NOS FICHEI-
 %          ROS ANTERIORES) E HESSINA E DO N� DE VARI�VEIS
@@ -30,20 +41,34 @@ a=0.2;
 b=1.9;
 c=1.5;
 
-f=@(x) (x(1)^2-100)*(x(1)^2-81)+(x(2)^2-25)*(x(2)^2-16)-a*cos(x(1)-b)*cos(x(2)-c);
+%f=@(x) (x(1)^2-100)*(x(1)^2-81)+(x(2)^2-25)*(x(2)^2-16)-a*cos(x(1)-b)*cos(x(2)-c);
+%
+%df=@(x) [4*x(1)^3-362*x(1)+a*sin(x(1)-b)*cos(x(2)-c);4*x(2)^3-82*x(2)+a*cos(x(1)-b)*sin(x(2)-c)];
 
-df=@(x) [4*x(1)^3-362*x(1)+a*sin(x(1)-b)*cos(x(2)-c);4*x(2)^3-82*x(2)+a*cos(x(1)-b)*sin(x(2)-c)];
+f=@(x) 100*(x(2)-x(1)^2)^2+(1-x(1))^2;
+Nvar=2;
+syms a b 'real'
+if Nvar==1
+    v=a;
+elseif Nvar==2
+    v=[a; b];
+end
 
-d2f=@(x) [12*x(1)^2-362+a*cos(x(1)-b)*cos(x(2)-c), -a*sin(x(1)-b)*sin(x(2)-c);... 
-          -a*sin(x(1)-b)*sin(x(2)-c), 12*x(2)^2-82+a*cos(x(1)-b)*cos(x(2)-c)];
+S=f(v);
+ds= jacobian(S,v);
+df = @(x) double(subs(ds,v,x)');
 
- Nvar=2;     
+d2s = hessian(S,v);
+d2f = @(x) double(subs(d2s,v,x)');
 
- 
+
+%d2f=@(x) [12*x(1)^2-362+a*cos(x(1)-b)*cos(x(2)-c), -a*sin(x(1)-b)*sin(x(2)-c);...
+%          -a*sin(x(1)-b)*sin(x(2)-c), 12*x(2)^2-82+a*cos(x(1)-b)*cos(x(2)-c)];
+
  % PARTE 2: DEFINI��O DOS PAR�METROS PARA OS CRIT�RIOS/CONDI��ES DE PARAGEM
 
-Nmax=100; 
-errodf=1e-2;  
+%Nmax=100;
+%errodf=1e-2;
 
 
 % PARTE 3: DESIGNA��O DOS OUTPUTS ARQUIVOS (ESSENCIAIS AO TRATAMENTO GR�F.)
@@ -57,8 +82,8 @@ Lopt=[];
 
 %NPontosIniciais=10;
 
-a=[-15;-10]; b=[15;10];  
-
+%a=[-15;-10]; b=[15;10];
+a=[double(xmin), double(ymin)]'; b=[double(xmax), double(ymax)]';
 
 
 % PARTE 5: IMPLEMENTA��O DO M�TODO N-RM (PROCESSO ITERATIVO)
@@ -74,7 +99,7 @@ for i=1:NPontosIniciais
     dfx=df(x);               
     N=1;
     
-    while norm(dfx)>errodf && N<Nmax               
+    while norm(dfx)>error && N<nMaxIter
     d2fx=d2f(x);
     d=-inv(d2fx)*dfx;           % CARATERIZA��O DA DIRE��O DE BUSCA do N-RM
     [lambda,]=Wolfe(x,f,df,d,1);  
@@ -103,12 +128,12 @@ end
 % PARTE 7: DEFINI��O E EXIBI��O DOS OUTPUTS (S�O EXIBIDOS NA COMMAND WINDOW
 %          PORQUE N�O � COLOCADO ";" NO FINAL, EMBORA SEM LEGENDA)
 
-xoptimo=xopt        
-foptimo=f(xopt)    
-dffinal=df(xopt)    
-NIterMean=mean(LNit)   
-HessianFinal=d2f(xopt)  %%% EXIBI��O DA HESSIANA NO PONTO �PTIMO
-D2=det(HessianFinal)    %%% EXIBI��O DO 2� MENOR PRINCIPAL
+xoptimo=xopt;
+foptimo=f(xopt);
+dffinal=df(xopt);
+NIterMean=mean(LNit);
+HessianFinal=d2f(xopt);  %%% EXIBI��O DA HESSIANA NO PONTO �PTIMO
+D2=det(HessianFinal);    %%% EXIBI��O DO 2� MENOR PRINCIPAL
 
 % PARTE 9: EXIBI��O DOS GR�FICOS COM RECURSO A OUTROS m.FILES
 if display
