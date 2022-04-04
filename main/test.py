@@ -4,7 +4,6 @@ import multiprocessing as mp
 from typing import List, Dict, Any, Tuple, Union
 
 import matlab.engine
-import matlab
 from matlab.engine import MatlabEngine, FutureResult
 
 
@@ -26,6 +25,7 @@ def main():
     error: float = 0.15
     window: Dict[str, int] = dict(xmin=-4, xmax=4, ymin=-4, ymax=4)
     function = "f=@(x) 100*(x(2)-x(1)^2)^2+(1-x(1))^2"
+
     run_algorithms(eng, error=error, initial_points=initial_points, methods=methods, n_max_iter=n_max_iter,
                    function=function, start=start, window=window)
 
@@ -67,6 +67,7 @@ def run_matlab(engine, method: str, seed: int, initial_points: int, n_max_iter: 
     result = attr(seed, initial_points, n_max_iter, error,
                   window["xmin"], window["xmax"], window["ymin"], window["ymax"],
                   display, nargout=6)
+
     results_dict = {
         "n_iter_mean": result[3],
         "foptimo": result[1],
